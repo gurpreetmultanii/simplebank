@@ -218,9 +218,12 @@ func TestLoginUserApi(t *testing.T) {
 					GetUser(gomock.Any(), user.Username).
 					Times(1).
 					Return(user, nil)
+				store.EXPECT().
+					CreateSession(gomock.Any(), gomock.Any()).
+					Times(1)
 			},
 			checkResponse: func(recorder *httptest.ResponseRecorder) {
-				arg := createUserResponse{
+				arg := loginUserResponse{
 					User: newUserResponse(user),
 				}
 				require.Equal(t, recorder.Code, http.StatusOK)
@@ -284,11 +287,11 @@ func requireBodyMatchUser(t *testing.T, body *bytes.Buffer, user db.User) {
 	require.Empty(t, gotUser.HashedPassword)
 }
 
-func requireBodyMatchCreateUser(t *testing.T, body *bytes.Buffer, createUser createUserResponse) {
+func requireBodyMatchCreateUser(t *testing.T, body *bytes.Buffer, createUser loginUserResponse) {
 	data, err := ioutil.ReadAll(body)
 	require.NoError(t, err)
 
-	var gotCreateUser createUserResponse
+	var gotCreateUser loginUserResponse
 	err = json.Unmarshal(data, &gotCreateUser)
 
 	require.NoError(t, err)
